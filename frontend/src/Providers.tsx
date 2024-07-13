@@ -1,3 +1,4 @@
+import { ReactNode } from 'react'
 import {
   DynamicContextProvider,
   DynamicWidget,
@@ -11,7 +12,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http } from 'viem'
 import { arbitrumSepolia } from 'viem/chains'
-import App from './App'
+import { ChakraProvider } from '@chakra-ui/react'
 
 const config = createConfig({
   chains: [arbitrumSepolia],
@@ -23,23 +24,25 @@ const config = createConfig({
 
 const queryClient = new QueryClient()
 
-const Providers = () => {
+const Providers = ({ children }: { children: ReactNode }) => {
   return (
-    <DynamicContextProvider
-      settings={{
-        environmentId: '23751c3e-a163-458f-bf01-30a73f09a40d',
-        walletConnectors: [EthereumWalletConnectors],
-      }}
-    >
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <DynamicWagmiConnector>
-            <DynamicWidget />
-            <App />
-          </DynamicWagmiConnector>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </DynamicContextProvider>
+    <ChakraProvider>
+      <DynamicContextProvider
+        settings={{
+          environmentId: '23751c3e-a163-458f-bf01-30a73f09a40d',
+          walletConnectors: [EthereumWalletConnectors],
+        }}
+      >
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <DynamicWagmiConnector>
+              <DynamicWidget />
+              {children}
+            </DynamicWagmiConnector>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </DynamicContextProvider>
+    </ChakraProvider>
   )
 }
 

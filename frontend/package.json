@@ -10,14 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/react": "^2.8.2",
     "@dynamic-labs/ethereum": "^2.3.0",
     "@dynamic-labs/sdk-react-core": "^2.3.0",
     "@dynamic-labs/wagmi-connector": "^2.3.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
     "@tanstack/react-query": "^5.51.1",
+    "framer-motion": "^11.3.2",
+    "peerjs": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "viem": "^2.17.3",
-    "wagmi": "^2.10.10"
+    "viem": "^2.17.3"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

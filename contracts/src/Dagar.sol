@@ -64,6 +64,7 @@ contract Dagar {
         if (!players[player].alive) revert InvalidAction();
 
         players[msg.sender].kills += 1;
+        players[msg.sender].size += players[player].size;
         players[player].alive = false;
         activePlayers -= 1;
 
