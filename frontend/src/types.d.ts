@@ -6,5 +6,6 @@ export interface Position {
 export interface BlobData {
   position: Position,
   r: number,
-  color: string
+  color: string,
+  address?: string
 }

@@ -7,7 +7,7 @@ import {IRollup} from "./interfaces/IRollup.sol";
 import {Utils} from "./libraries/Utils.sol";
 import {Dagar} from "./Dagar.sol";
 
-// 0x06E341073b2749e0Bb9912461351f716DeCDa9b0
+// rollupCreator = 0x06E341073b2749e0Bb9912461351f716DeCDa9b0
 
 contract DagarFactory {
     struct Game {

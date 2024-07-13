@@ -23,6 +23,7 @@ contract Dagar {
     mapping(address user => Player player) public players;
     uint256 public activePlayers;
 
+    event Alive(address indexed gameContract);
     event NewPlayerJoined(address indexed player, uint256 indexed playerId);
 
     error NotAPlayer();
@@ -39,6 +40,8 @@ contract Dagar {
         source = _source;
         outbox = _outbox;
         playerId = 0;
+
+        emit Alive(address(this));
     }
 
     ////////////// Cross-chain functions //////////////

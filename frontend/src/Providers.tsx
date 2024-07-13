@@ -1,7 +1,6 @@
 import { ReactNode } from 'react'
 import {
-  DynamicContextProvider,
-  DynamicWidget,
+  DynamicContextProvider
 } from '@dynamic-labs/sdk-react-core'
 import { EthereumWalletConnectors } from '@dynamic-labs/ethereum'
 import { DynamicWagmiConnector } from '@dynamic-labs/wagmi-connector'
@@ -36,7 +35,6 @@ const Providers = ({ children }: { children: ReactNode }) => {
         <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>
             <DynamicWagmiConnector>
-              <DynamicWidget />
               {children}
             </DynamicWagmiConnector>
           </QueryClientProvider>
