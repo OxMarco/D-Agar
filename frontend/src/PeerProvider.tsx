@@ -7,7 +7,7 @@ import { BlobData } from './types';
 interface PeerContextType {
   broadcastPosition: (mainBlob: BlobData) => void;
   peer: Peer | null;
-  players: BlobData[];
+  playersData: BlobData[];
 }
 
 const PeerContext = createContext<PeerContextType | undefined>(undefined);
@@ -22,13 +22,12 @@ export const usePeer = () => {
 
 const PeerProvider = ({ address, children }: { address: string, children: ReactNode }) => {
   const [peer, setPeer] = useState<Peer | null>(null);
-  const [players, setPlayers] = useState<BlobData[]>([]);
+  const [playersData, setPlayersData] = useState<BlobData[]>([]);
   const [remotePeers, setRemotePeers] = useState<string[]>([]);
   const [connections, setConnections] = useState<DataConnection[]>([]);
   const toast = useToast();
 
   useEffect(() => {
-    console.log(1)
     const userId = `peer_${address}`;
     const newPeer = new Peer(userId, {
       host: '0.peerjs.com',
@@ -45,11 +44,11 @@ const PeerProvider = ({ address, children }: { address: string, children: ReactN
 
     newPeer.on('open', (id: string) => {
       setPeer(newPeer);
-      toast({
+      /*toast({
         status: 'info',
         title: `Connected with ID: ${id}`,
         isClosable: true,
-      });
+      });*/
     });
 
     newPeer.on('connection', (connection) => {
@@ -63,7 +62,7 @@ const PeerProvider = ({ address, children }: { address: string, children: ReactN
         });
 
         connection.on('data', (msg: any) => {
-          setPlayers((prevPlayers) => {
+          setPlayersData((prevPlayers) => {
             const updatedPlayers = [...prevPlayers];
             const playerIndex = updatedPlayers.findIndex((player) => player.address === msg.address);
             if (playerIndex > -1) {
@@ -118,7 +117,7 @@ const PeerProvider = ({ address, children }: { address: string, children: ReactN
   }, [connections]);
 
   return (
-    <PeerContext.Provider value={{ broadcastPosition, peer, players }}>
+    <PeerContext.Provider value={{ broadcastPosition, peer, playersData }}>
       {children}
     </PeerContext.Provider>
   );

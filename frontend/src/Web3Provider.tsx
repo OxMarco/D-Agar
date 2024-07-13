@@ -3,7 +3,9 @@ import { useReadContract } from 'wagmi';
 import { DAGAR_ABI, DAGAR_ADDRESS } from "./contracts/Dagar";
 
 interface Web3ContextType {
-  mapWidth: any;
+  activePlayers: any;
+  players: any;
+  foodBlobs: any;
 }
 
 const Web3Context = createContext<Web3ContextType | undefined>(undefined);
@@ -17,16 +19,25 @@ export const useWeb3 = () => {
 };
 
 const Web3Provider = ({ account, children }: { account: any, children: ReactNode }) => {
-  const mapWidth = useReadContract({
+  const activePlayers = useReadContract({
     abi: DAGAR_ABI,
     address: DAGAR_ADDRESS,
-    functionName: 'mapWidth',
+    functionName: 'activePlayers',
+  });
+  const players = useReadContract({
+    abi: DAGAR_ABI,
+    address: DAGAR_ADDRESS,
+    functionName: 'getPlayers',
+  });
+  const foodBlobs = useReadContract({
+    abi: DAGAR_ABI,
+    address: DAGAR_ADDRESS,
+    functionName: 'getBlobs',
+
   });
 
-  console.log(mapWidth)
-
   return (
-    <Web3Context.Provider value={{ mapWidth }}>
+    <Web3Context.Provider value={{ activePlayers, players, foodBlobs }}>
       {children}
     </Web3Context.Provider>
   );

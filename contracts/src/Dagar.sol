@@ -11,16 +11,22 @@ contract Dagar {
         bool alive;
     }
 
+    struct Blob {
+        uint256 x;
+        uint256 y;
+    }
+
     uint256 public constant mapWidth = 1000;
     uint256 public constant mapHeight = 1000;
-    uint256 public constant numFoodParticles = 100;
+    uint256 public constant numBlobParticles = 100;
 
     uint256 public immutable seed;
     address public immutable source;
     address public immutable outbox;
 
     uint256 public playerId;
-    mapping(address user => Player player) public players;
+    mapping(address user => Player player) public playerData;
+    address[] public players;
     uint256 public activePlayers;
 
     event Alive(address indexed gameContract);
@@ -31,7 +37,7 @@ contract Dagar {
     error InvalidAction();
 
     modifier isActivePlayer() {
-        if (!players[msg.sender].alive) revert NotAPlayer();
+        if (!playerData[msg.sender].alive) revert NotAPlayer();
         _;
     }
 
@@ -47,9 +53,10 @@ contract Dagar {
     ////////////// Cross-chain functions //////////////
 
     function joinGame(address player) external {
-        if (players[msg.sender].size != 0) revert AlreadyPlaying();
+        if (playerData[msg.sender].size != 0) revert AlreadyPlaying();
 
-        players[msg.sender] = Player({id: ++playerId, alive: true, size: 1, kills: 0});
+        players.push(player);
+        playerData[msg.sender] = Player({id: ++playerId, alive: true, size: 1, kills: 0});
         activePlayers += 1;
 
         emit NewPlayerJoined(player, playerId);
@@ -64,36 +71,51 @@ contract Dagar {
     ////////////// Local functions //////////////
 
     function eatPlayer(address player) external isActivePlayer {
-        if (!players[player].alive) revert InvalidAction();
+        if (!playerData[player].alive) revert InvalidAction();
 
-        players[msg.sender].kills += 1;
-        players[msg.sender].size += players[player].size;
-        players[player].alive = false;
+        playerData[msg.sender].kills += 1;
+        playerData[msg.sender].size += playerData[player].size;
+        playerData[player].alive = false;
         activePlayers -= 1;
 
         if (activePlayers == 1) _terminateGame(msg.sender);
     }
 
-    function eatFood(uint256 x, uint256 y) external isActivePlayer {
-        if (!_isFoodAtPosition(x, y, block.timestamp)) revert InvalidAction();
+    function eatBlob(uint256 x, uint256 y) external isActivePlayer {
+        if (!_isBlobAtPosition(x, y, block.timestamp)) revert InvalidAction();
 
-        players[msg.sender].size += 1;
+        playerData[msg.sender].size += 1;
     }
 
-    function _isFoodAtPosition(uint256 x, uint256 y, uint256 timestamp) internal view returns (bool) {
-        for (uint256 i = 0; i < numFoodParticles; i++) {
-            (uint256 foodX, uint256 foodY) = generateFoodPosition(i, timestamp);
-            if (foodX == x && foodY == y) {
+    function _isBlobAtPosition(uint256 x, uint256 y, uint256 timestamp) internal view returns (bool) {
+        for (uint256 i = 0; i < numBlobParticles; i++) {
+            (uint256 blobX, uint256 blobY) = generateBlobPosition(i, timestamp);
+            if (blobX == x && blobY == y) {
                 return true;
             }
         }
         return false;
     }
 
-    function generateFoodPosition(uint256 index, uint256 timestamp) public view returns (uint256, uint256) {
+    function generateBlobPosition(uint256 index, uint256 timestamp) public view returns (uint256, uint256) {
         uint256 randomHash = uint256(keccak256(abi.encodePacked(seed, timestamp, index)));
         uint256 x = randomHash % mapWidth;
         uint256 y = (randomHash / mapWidth) % mapHeight;
         return (x, y);
+    }
+
+    function getPlayers() external view returns(address[] memory) {
+        return players;
+    }
+
+    function getBlobs() external view returns (Blob[] memory) {
+        Blob[] memory blobs = new Blob[](200);
+        for(uint16 i = 0; i < 200; i++) {
+            (uint256 x, uint256 y) = generateBlobPosition(i, block.timestamp);
+            blobs[i].x = x;
+            blobs[i].y = y;
+        }
+
+        return blobs;
     }
 }

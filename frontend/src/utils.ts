@@ -1,4 +1,4 @@
-import { BlobData, Position } from "./types";
+import { BlobData, FoodBlob, Position } from "./types";
 
 export function getRandomColor() {
   const letters = '0123456789ABCDEF';
@@ -16,16 +16,12 @@ export function getRandomPosition(width: number, height: number) {
   };
 };
 
-export function getRandomDots(width: number, height: number): BlobData[] {
+export function getRandomDots(width: number, height: number): FoodBlob[] {
   let blobs = [];
-  for (let i = 1; i < 100; ++i) {
+  for (let i = 1; i < 200; ++i) {
       blobs.push({
-          position: {
             x: getRandomNumber(- width, width), 
             y: getRandomNumber(-height, height)
-          }, 
-          r: 20,
-          color: getRandomColor()
         });
   }
   return blobs;

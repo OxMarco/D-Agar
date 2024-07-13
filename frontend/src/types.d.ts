@@ -9,3 +9,5 @@ export interface BlobData {
   color: string,
   address?: string
 }
+
+export interface FoodBlob extends Position {}

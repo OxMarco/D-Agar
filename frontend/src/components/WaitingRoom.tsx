@@ -3,10 +3,11 @@ import { Box } from "@chakra-ui/react"
 import OverlayModal from "./OverlayModal"
 import ConnectButton from "./ConnectButton"
 import Blob from "./Blob"
-import { BlobData } from "../types"
+import { FoodBlob } from "../types"
 import { fullScreen, transition } from "../constants"
+import { getRandomColor } from "../utils/blobUtils"
 
-const WaitingRoom = ({ width, height, account, blobs }: { width: number, height: number, account: any, blobs: BlobData[] }) => {
+const WaitingRoom = ({ width, height, account, blobs }: { width: number, height: number, account: any, blobs: FoodBlob[] }) => {
   const svg = useRef<SVGSVGElement>(null)
 
   return (
@@ -17,8 +18,8 @@ const WaitingRoom = ({ width, height, account, blobs }: { width: number, height:
         <g style={transition}
           transform={`translate(${width / 2}, ${height / 2}), scale(1)`}>
           <g>
-            {blobs.map((blob: BlobData, index: number) => (
-              <Blob position={{ x: blob.position.x, y: blob.position.y }} r={blob.r} color={blob.color} key={index} />
+            {blobs.map((blob: FoodBlob, index: number) => (
+              <Blob position={{ x: blob.x, y: blob.y }} r={10} color={getRandomColor()} key={index} />
             ))}
           </g>
         </g>
