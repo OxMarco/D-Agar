@@ -1,4 +1,5 @@
 import React from 'react'
+import { addressToNumber } from '../utils'
 
 const Player = React.memo(({ address, position, r }: { address: string, position: any, r: number }) => {
   const clipId = `clip_${address}`
@@ -12,7 +13,7 @@ const Player = React.memo(({ address, position, r }: { address: string, position
       </defs>
       <svg x={position.x - r} y={position.y - r} width={r * 2} height={r * 2}>
         <image 
-          href={`https://noun.pics/${address}.jpg`} 
+          href={`https://noun.pics/${addressToNumber(address)}.png`} 
           x="0" 
           y="0" 
           width={r * 2} 

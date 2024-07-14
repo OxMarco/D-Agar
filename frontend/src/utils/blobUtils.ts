@@ -1,18 +1,30 @@
-import { BlobData, Position } from "../types";
+import { BlobData, FoodBlob, Position } from "../types";
 
 export function getRandomColor(): string {
   return '#' + Math.floor(Math.random()*16777215).toString(16);
 }
 
-export function getRandomDots(width: number, height: number): BlobData[] {
+export function getDeterministicColor(x: number, y: number): string {
+  const seed = `${x},${y}`;
+  const hash = hashString(seed);
+  return `#${hash.slice(0, 6)}`;
+}
+
+function hashString(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  let hex = (hash >>> 0).toString(16);
+  return '000000'.substring(hex.length) + hex; // Ensure the hash is at least 6 characters long
+}
+
+export function getRandomDots(width: number, height: number): FoodBlob[] {
   return Array.from({ length: 200 }, (_, i) => ({
-    position: {
-      x: Math.random() * width * 4 - width * 2,
-      y: Math.random() * height * 4 - height * 2
-    },
-    r: 10,
-    color: getRandomColor(),
-    id: i + 1
+    x: Math.random() * width * 4 - width * 2,
+    y: Math.random() * height * 4 - height * 2
   }));
 }
 

@@ -1,4 +1,41 @@
-import { BlobData, FoodBlob, Position } from "./types";
+import { keccak256, encodeAbiParameters, toHex } from 'viem'
+import { BlobData, FoodBlob, Position } from "./types"
+
+export function generateBlobPosition(index: number, timestamp: number, seed: string, mapWidth: number, mapHeight: number): FoodBlob {
+    const randomHash = keccak256(
+      encodeAbiParameters(
+        [
+          {name: 'seed', type: 'string'}, 
+          {name: 'timestamp', type: 'uint256'},
+          {name: 'index' , type: 'uint256'},
+        ],
+        [seed, BigInt(timestamp), BigInt(index)]
+      )
+    )
+
+    const randomHashNumber = Number(randomHash)
+
+    const x = randomHashNumber % (mapWidth);
+    const y = randomHashNumber / (mapWidth) % (mapHeight);
+    return {x, y};
+}
+
+export function addressToNumber(address: any): number {
+  // Hash the address using keccak256
+  const hash = keccak256(address);
+  
+  // Convert the hash to a hexadecimal string
+  const hexString = toHex(hash);
+  
+  // Convert the hexadecimal string to a BigInt
+  const bigInt = BigInt(hexString);
+  
+  // Use modulo operation to get a value between 1 and 1000
+  const number = Number(bigInt % 1000n);
+  
+  // Ensure the number is within the desired range (1 to 1000)
+  return number === 0 ? 1000 : number;
+}
 
 export function getRandomColor() {
   const letters = '0123456789ABCDEF';

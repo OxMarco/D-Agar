@@ -1,126 +1,114 @@
-import { createContext, ReactNode, useContext } from 'react';
-import { useState, useEffect, useCallback } from 'react';
-import Peer, { DataConnection } from 'peerjs';
-import { useToast } from '@chakra-ui/react';
-import { BlobData } from './types';
+import { createContext, ReactNode, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import Peer, { DataConnection } from 'peerjs'
+import { useToast } from '@chakra-ui/react'
+import { BlobData } from './types'
+import { useWeb3 } from './Web3Provider'
 
-interface PeerContextType {
-  broadcastPosition: (mainBlob: BlobData) => void;
-  peer: Peer | null;
-  playersData: BlobData[];
-}
-
-const PeerContext = createContext<PeerContextType | undefined>(undefined);
+const PeerContext = createContext<any>({})
 
 export const usePeer = () => {
-  const context = useContext(PeerContext);
+  const context = useContext(PeerContext)
   if (context === undefined) {
-    throw new Error('usePeer must be used within a PeerProvider');
+    throw new Error('usePeer must be used within a PeerProvider')
   }
-  return context;
-};
+  return context
+}
 
-const PeerProvider = ({ address, children }: { address: string, children: ReactNode }) => {
-  const [peer, setPeer] = useState<Peer | null>(null);
-  const [playersData, setPlayersData] = useState<BlobData[]>([]);
-  const [remotePeers, setRemotePeers] = useState<string[]>([]);
-  const [connections, setConnections] = useState<DataConnection[]>([]);
-  const toast = useToast();
+const PeerProvider = ({ children }: { children: ReactNode }) => {
+  const [peer, setPeer] = useState<Peer | null>(null)
+  const [opponent, setOpponent] = useState<BlobData>()
+  const [connection, setConnection] = useState<DataConnection>()
+  const [connections, setConnections] = useState<DataConnection[]>([])
+  const toast = useToast()
+  const { account } = useWeb3()
+  const host = "0x651E644a071017Ea5eFD88ece7d58531f1E1eE29"
+
+  const isHost = (id: string) => {
+    return id === 'peer_' + host
+  }
 
   useEffect(() => {
-    const userId = `peer_${address}`;
+    if (!account?.address) return
+
+    const userId = `peer_${account.address}`
     const newPeer = new Peer(userId, {
       host: '0.peerjs.com',
       port: 443,
       path: '/',
-      pingInterval: 5000,
+      pingInterval: 500,
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-        ],
-      },
-    });
+        ]
+      }
+    })
 
     newPeer.on('open', (id: string) => {
-      setPeer(newPeer);
-      /*toast({
-        status: 'info',
-        title: `Connected with ID: ${id}`,
-        isClosable: true,
-      });*/
-    });
+      setPeer(newPeer)
 
-    newPeer.on('connection', (connection) => {
-      connection.on('open', () => {
-        setConnections((prevConnections) => [...prevConnections, connection]);
-        setRemotePeers((prevRemotePeers) => [...prevRemotePeers, connection.peer]);
-        toast({
-          status: 'info',
-          title: `User ${connection.peer} joined`,
-          isClosable: true,
-        });
+      if (!isHost(id)) {
+        const conn = newPeer.connect('peer_' + host)
 
-        connection.on('data', (msg: any) => {
-          setPlayersData((prevPlayers) => {
-            const updatedPlayers = [...prevPlayers];
-            const playerIndex = updatedPlayers.findIndex((player) => player.address === msg.address);
-            if (playerIndex > -1) {
-              updatedPlayers[playerIndex] = msg;
-            } else {
-              updatedPlayers.push(msg);
-            }
-            return updatedPlayers;
-          });
-        });
+        conn.on('open', () => {
+          setConnection(conn)
+        })
 
-        connection.on('close', () => {
-          setConnections((prevConnections) => prevConnections.filter((conn) => conn.peer !== connection.peer));
-          setRemotePeers((prevRemotePeers) => prevRemotePeers.filter((peer) => peer !== connection.peer));
-          toast({
-            status: 'info',
-            title: `User ${connection.peer} disconnected`,
-            isClosable: true,
-          });
-        });
-
-        connection.on('error', (err: any) => {
+        conn.on('error', (err: any) => {
           toast({
             status: 'error',
-            title: `Connection error with ${connection.peer}`,
-            description: err.toString(),
+            title: 'Connection error, reload the page',
+            description: err,
             isClosable: true,
-          });
-        });
-      });
-    });
+          })
+        })
+      }
+    })
+
+    newPeer.on('connection', (connection) => {
+      setConnections([...connections, connection])
+    })
 
     newPeer.on('error', (err) => {
-      toast({
-        status: 'error',
-        title: 'Peer connection error',
-        description: err.toString(),
-        isClosable: true,
-      });
-      console.error('Peer connection error:', err);
-    });
+      console.error('Peer connection error:', err)
+    })
 
     return () => {
-      newPeer.destroy();
-    };
-  }, [address, toast]);
+      newPeer.destroy()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!peer || !connection) return
+
+    connection.on('data', function (msg: any) {
+      setOpponent(msg.data);
+      console.log(msg.data)
+    });    
+
+    return () => {
+      if (connection) {
+        //connection.off()
+        connection.close()
+      }
+    }
+  }, [connection])
 
   const broadcastPosition = useCallback((mainBlob: BlobData) => {
-    connections.forEach((conn) => {
-      conn.send({ type: 'position', data: mainBlob });
-    });
-  }, [connections]);
+    if (connections.length === 0 || !peer) return
+
+    connections.map((conn) => conn.send({ type: 'position', data: mainBlob }))
+  }, [connections, peer])
+
+  const contextValue = useMemo(() => {
+    return { broadcastPosition, peer, opponent }
+  }, [broadcastPosition, peer, opponent])
 
   return (
-    <PeerContext.Provider value={{ broadcastPosition, peer, playersData }}>
+    <PeerContext.Provider value={contextValue}>
       {children}
     </PeerContext.Provider>
-  );
-};
+  )
+}
 
-export default PeerProvider;
+export default PeerProvider

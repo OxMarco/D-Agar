@@ -40,7 +40,7 @@ contract DagarFactoryDemo {
     constructor() {
         id = 0;
     }
-    
+
     function createGame(uint256 chainId, address chainAddress, uint256 bet) external payable {
         if (msg.value != createFee) revert InvalidFee();
         if (currentGame.id != 0 && currentGame.deadline >= block.timestamp) revert GameStillOngoing();

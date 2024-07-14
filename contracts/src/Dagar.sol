@@ -11,11 +11,6 @@ contract Dagar {
         bool alive;
     }
 
-    struct Blob {
-        uint256 x;
-        uint256 y;
-    }
-
     uint256 public constant mapWidth = 1000;
     uint256 public constant mapHeight = 1000;
     uint256 public constant numBlobParticles = 100;
@@ -81,15 +76,15 @@ contract Dagar {
         if (activePlayers == 1) _terminateGame(msg.sender);
     }
 
-    function eatBlob(uint256 x, uint256 y) external isActivePlayer {
+    function eatBlob(uint16 x, uint16 y) external isActivePlayer {
         if (!_isBlobAtPosition(x, y, block.timestamp)) revert InvalidAction();
 
         playerData[msg.sender].size += 1;
     }
 
-    function _isBlobAtPosition(uint256 x, uint256 y, uint256 timestamp) internal view returns (bool) {
+    function _isBlobAtPosition(uint16 x, uint16 y, uint256 timestamp) internal view returns (bool) {
         for (uint256 i = 0; i < numBlobParticles; i++) {
-            (uint256 blobX, uint256 blobY) = generateBlobPosition(i, timestamp);
+            (uint16 blobX, uint16 blobY) = generateBlobPosition(i, timestamp);
             if (blobX == x && blobY == y) {
                 return true;
             }
@@ -97,25 +92,14 @@ contract Dagar {
         return false;
     }
 
-    function generateBlobPosition(uint256 index, uint256 timestamp) public view returns (uint256, uint256) {
+    function generateBlobPosition(uint256 index, uint256 timestamp) public view returns (uint16, uint16) {
         uint256 randomHash = uint256(keccak256(abi.encodePacked(seed, timestamp, index)));
         uint256 x = randomHash % mapWidth;
         uint256 y = (randomHash / mapWidth) % mapHeight;
-        return (x, y);
+        return (uint16(x), uint16(y));
     }
 
-    function getPlayers() external view returns(address[] memory) {
+    function getPlayers() external view returns (address[] memory) {
         return players;
-    }
-
-    function getBlobs() external view returns (Blob[] memory) {
-        Blob[] memory blobs = new Blob[](200);
-        for(uint16 i = 0; i < 200; i++) {
-            (uint256 x, uint256 y) = generateBlobPosition(i, block.timestamp);
-            blobs[i].x = x;
-            blobs[i].y = y;
-        }
-
-        return blobs;
     }
 }
